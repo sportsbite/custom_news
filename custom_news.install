@@ -10,13 +10,13 @@
  */
 function custom_news_install() {
 
-  _custom_news_install_create_content_type();
+  _custom_news_install_create_content_types();
 }
 
 /**
  * Creates a news content type.
  */
-function _custom_news_install_create_content_type() {
+function _custom_news_install_create_content_types() {
 
   $types = array(
     array(
@@ -31,8 +31,11 @@ function _custom_news_install_create_content_type() {
   );
 
   foreach ($types as $type) {
-    $type = node_type_set_defaults($type);
-    node_type_save($type);
-    node_add_body_field($type);
+    if (!node_type_load($type['type'])) {
+      $type = node_type_set_defaults($type);
+      node_type_save($type);
+      node_add_body_field($type);
+    }
   }
+
 }
