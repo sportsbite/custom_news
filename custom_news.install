@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Installation and update scripts for custom_news module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function custom_news_install() {
+
+  _custom_news_install_create_content_type();
+}
+
+/**
+ * Creates a news content type.
+ */
+function _custom_news_install_create_content_type() {
+
+  $types = array(
+    array(
+      'type' => 'news',
+      'name' => st('News'),
+      'base' => 'node_content',
+      'description' => st('News articles.'),
+      'custom' => 1,
+      'modified' => 1,
+      'locked' => 0,
+    ),
+  );
+
+  foreach ($types as $type) {
+    $type = node_type_set_defaults($type);
+    node_type_save($type);
+    node_add_body_field($type);
+  }
+}

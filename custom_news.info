@@ -1,0 +1,4 @@
+name = "Custom News"
+description = "Does programatic things with news."
+core = 7.x
+version = 7.x-1.x-dev

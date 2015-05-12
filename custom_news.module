@@ -1,0 +1,168 @@
+<?php
+
+/**
+ * @file
+ * Does programatic things with news.
+ *
+ * @author Erik Stielstra <info@erikstielstra.nl>
+ * @link http://wizzlern.nl
+ * @package custom_news
+ */
+
+/* -----------------------------------------------------------------
+ * Hook Implementations
+ * ------------------------------------------------------------------ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function custom_news_form_user_login_alter(&$form, &$form_state) {
+
+  // Remove the password description.
+  unset($form['pass']['#description']);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function custom_news_block_info() {
+
+  $blocks['greeting'] = array(
+    'info' => t('Greeting'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  $blocks['recent_news'] = array(
+    'info' => t('Recent news and articles'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function custom_news_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'greeting':
+      $block['subject'] = '';
+      $block['content'] = custom_news_greeting_block_view();
+      break;
+
+    case 'recent_news':
+      $block['subject'] = t('News');
+      $block['content'] = custom_news_recent_news_block_view();
+      break;
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function custom_news_views_query_alter(&$view, &$query) {
+  if ($view->name == 'news') {
+
+    // Add an extra OR condition to include our selected node.
+    $query->where[] = array(
+      'conditions' => array(array(
+        'field' => 'node.nid',
+        'value' => custom_news_select_a_nid(),
+        'operator' => '=',
+      )),
+      'args' => array(),
+      'type' => 'AND',
+    );
+  }
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function custom_news_views_pre_render(&$view) {
+
+  // Move the selected node to the top of the results list.
+  $selected = custom_news_select_a_nid();
+  foreach ($view->result as $key => $result) {
+    if ($result->nid == $selected) {
+      unset($view->result[$key]);
+      array_unshift($view->result, $result);
+      break;
+    }
+  }
+}
+
+/* -----------------------------------------------------------------
+ * Callbacks and block contents
+ * ------------------------------------------------------------------ */
+
+/**
+ * Block view callback: Returns a message that changes with the time of day.
+ */
+function custom_news_greeting_block_view() {
+  $greeting = '';
+
+  $hour = format_date(REQUEST_TIME, 'custom', 'G');
+  if ($hour >= 22 || $hour < 6) {
+    $greeting = t('Good night');
+  }
+  elseif ($hour >= 18) {
+    $greeting = t('Good evening');
+  }
+  elseif ($hour >= 12) {
+    $greeting = t('Good afternoon');
+  }
+  elseif ($hour >= 6) {
+    $greeting = t('Good morning');
+  }
+
+  return $greeting;
+}
+
+/**
+ * Block view callback: Returns a list of links to news articles.
+ */
+function custom_news_recent_news_block_view() {
+  $items = array();
+
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', array('news'))
+    ->propertyCondition('status', NODE_PUBLISHED)
+    ->propertyOrderBy('changed', 'DESC')
+    ->range(0, 10);
+  $results = $query->execute();
+
+  if (!empty($results)) {
+    $nodes = node_load_multiple(array_keys($results['node']));
+    foreach ($nodes as $node) {
+      $items[] = l($node->title, 'node/' . $node->nid);
+    }
+  }
+
+  return theme('item_list', array('items' => $items));
+}
+
+/* -----------------------------------------------------------------
+ * Database and API functions
+ * ------------------------------------------------------------------ */
+
+/**
+ * Returns the node ID of a select node.
+ *
+ * @return string
+ *   Node ID number.
+ */
+function custom_news_select_a_nid() {
+
+  // @todo Make selection dynamic.
+  return '1';
+}
+
+/* -----------------------------------------------------------------
+ * Theming
+ * ------------------------------------------------------------------ */
+
