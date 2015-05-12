@@ -61,6 +61,20 @@ function custom_news_block_view($delta = '') {
 }
 
 /**
+ * Implements hook_views_api().
+ *
+ * This implementation is needed for Views to be able to pickup the default
+ * view in custom_news.views_default.inc. It is not required to implement
+ * views_*_alter() hooks.
+ */
+function custom_news_views_api() {
+
+  return array(
+    'api' => '3.0',
+  );
+}
+
+/**
  * Implements hook_views_query_alter().
  */
 function custom_news_views_query_alter(&$view, &$query) {
@@ -165,4 +179,3 @@ function custom_news_select_a_nid() {
 /* -----------------------------------------------------------------
  * Theming
  * ------------------------------------------------------------------ */
-
