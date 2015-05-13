@@ -32,7 +32,7 @@ function custom_news_block_info() {
     'cache' => DRUPAL_NO_CACHE
   );
   $blocks['recent_news'] = array(
-    'info' => t('Recent news and articles'),
+    'info' => t('Recent news'),
     'cache' => DRUPAL_NO_CACHE
   );
 
@@ -175,7 +175,3 @@ function custom_news_select_a_nid() {
   // @todo Make selection dynamic.
   return '1';
 }
-
-/* -----------------------------------------------------------------
- * Theming
- * ------------------------------------------------------------------ */
